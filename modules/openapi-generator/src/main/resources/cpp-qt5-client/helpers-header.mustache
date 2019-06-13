@@ -11,12 +11,22 @@
 #include <QByteArray>
 #include <QDate>
 #include <QVariant>
+#include <QUrl>
 #include "{{prefix}}Object.h"
 #include "{{prefix}}Enum.h"
 
 {{#cppNamespaceDeclarations}}
 namespace {{this}} {
 {{/cppNamespaceDeclarations}}
+    class {{prefix}}ClientConfig
+    {
+    public:
+        {{prefix}}ClientConfig(QString baseUrl=QString());
+        QUrl baseUrl=QUrl("{{#scheme}}{{scheme}}{{/scheme}}{{^scheme}}http{{/scheme}}://{{#host}}{{host}}{{/host}}{{^host}}localhost{{/host}}{{#contextPath}}{{contextPath}}{{/contextPath}}");
+        QMap<QString, QString> headerAuth;
+        QMap<QString, QString> defaultHeaders;
+        QString getUrl() const { return baseUrl.toString(); }
+    };
 
     QString toStringValue(const QString &value);
     QString toStringValue(const QDateTime &value);

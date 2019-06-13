@@ -13,6 +13,27 @@
 namespace {{this}} {
 {{/cppNamespaceDeclarations}}
 
+{{^isEnum}}{{#vars}}{{#isEnum}}
+bool
+fromJsonValue({{classname}}::{{enumName}} &value, const QJsonValue &jval){
+    QString jsonString = jval.toString();
+    value = {{classname}}::{{enumName}}::INVALID_VALUE_OPENAPI_GENERATED;{{#allowableValues}}{{#enumVars}} 
+    {{#-first}}if{{/-first}}{{^-first}}else if{{/-first}} (jsonString.compare({{#isString}}"{{value}}"{{/isString}}{{^isString}}QString::number({{value}}){{/isString}}, Qt::CaseInsensitive) == 0) {
+        value = {{classname}}::{{enumName}}::{{name}};
+    }{{/enumVars}}{{/allowableValues}}
+    return value!={{classname}}::{{enumName}}::INVALID_VALUE_OPENAPI_GENERATED;
+}
+QJsonValue
+toJsonValue(const {{classname}}::{{enumName}} value){
+    switch (value) { {{#allowableValues}}{{#enumVars}} 
+    case {{classname}}::{{enumName}}::{{name}}:
+        return QJsonValue({{#isString}}"{{value}}"{{/isString}}{{^isString}}{{value}}{{/isString}});{{/enumVars}}{{/allowableValues}}
+    default:
+        return QJsonValue();
+    }
+}
+{{/isEnum}}{{/vars}}{{/isEnum}}
+
 {{classname}}::{{classname}}(QString json) {
     this->init();
     this->fromJson(json);
@@ -40,39 +61,43 @@ void
 
 void
 {{classname}}::fromJson(QString jsonString) {
-    {{^isEnum}}QByteArray array (jsonString.toStdString().c_str());
-    QJsonDocument doc = QJsonDocument::fromJson(array);
+    {{^isEnum}}QJsonDocument doc = QJsonDocument::fromJson(jsonString.toUtf8());
     QJsonObject jsonObject = doc.object();
     this->fromJsonObject(jsonObject);{{/isEnum}}{{#isEnum}}{{#allowableValues}}{{#enumVars}} 
     {{#-first}}if{{/-first}}{{^-first}}else if{{/-first}} ( jsonString.compare({{#isString}}"{{value}}"{{/isString}}{{^isString}}QString::number({{value}}){{/isString}}, Qt::CaseInsensitive) == 0) {
         m_value = e{{classname}}::{{name}};
         m_value_isValid = true;
+        m_value_isSet = true;
     }{{/enumVars}}{{/allowableValues}}{{/isEnum}}
 }
 
 void
 {{classname}}::fromJson{{^isEnum}}Object{{/isEnum}}{{#isEnum}}Value{{/isEnum}}(QJson{{^isEnum}}Object{{/isEnum}}{{#isEnum}}Value{{/isEnum}} json) {
     {{^isEnum}}{{#vars}}
-    {{^isContainer}}m_{{name}}_isValid = ::{{cppNamespace}}::fromJsonValue({{name}}, json[QString("{{baseName}}")]);{{/isContainer}}
-    {{#isContainer}}{{^items.isContainer}}m_{{name}}_isValid = ::{{cppNamespace}}::fromJsonValue({{name}}, json[QString("{{baseName}}")]);{{/items.isContainer}}{{#items.isContainer}}{{#isListContainer}}
+    {{^isContainer}}m_{{name}}_isSet = json.contains("{{baseName}}");
+    m_{{name}}_isValid = ::{{cppNamespace}}::fromJsonValue(m_{{name}}, json["{{baseName}}"]);{{/isContainer}}
+    {{#isContainer}}{{^items.isContainer}}m_{{name}}_isSet = json.contains("{{baseName}}");
+    m_{{name}}_isValid = ::{{cppNamespace}}::fromJsonValue(m_{{name}}, json["{{baseName}}"]);{{/items.isContainer}}{{#items.isContainer}}{{#isListContainer}}
     if(json["{{baseName}}"].isArray()){
         auto arr = json["{{baseName}}"].toArray();
         m_{{name}}_isValid = true;
+        m_{{name}}_isSet = true;
         for (const QJsonValue & jval : arr) {
             {{^items.isContainer}}{{items.baseType}}{{/items.isContainer}}{{#items.isListContainer}}QList<{{items.items.baseType}}>{{/items.isListContainer}}{{#items.isMapContainer}}QMap<QString, {{items.items.baseType}}>{{/items.isMapContainer}} item;
             m_{{name}}_isValid &=  ::{{cppNamespace}}::fromJsonValue(item, jval)
-            {{name}}.push_back(item);
+            m_{{name}}.push_back(item);
         }
     }{{/isListContainer}}{{#isMapContainer}}
     if(json["{{baseName}}"].isObject()){
         auto varmap = json["{{baseName}}"].toObject().toVariantMap();
         m_{{name}}_isValid = true;
+        m_{{name}}_isSet = true;
         if(varmap.count() > 0){
             for(auto val : varmap.keys()){
                 {{^items.isContainer}}{{items.baseType}}{{/items.isContainer}}{{#items.isListContainer}}QList<{{items.items.baseType}}>{{/items.isListContainer}}{{#items.isMapContainer}}QMap<QString, {{items.items.baseType}}>{{/items.isMapContainer}} item;
     		    auto jval = QJsonValue::fromVariant(varmap.value(val));
                 m_{{name}}_isValid &= ::{{cppNamespace}}::fromJsonValue(item, jval);
-                {{name}}.insert({{name}}.end(), val, item);
+                m_{{name}}.insert(m_{{name}}.end(), val, item);
             }
         }
     }{{/isMapContainer}}{{/items.isContainer}}{{/isContainer}}
@@ -103,29 +128,60 @@ QString
 QJson{{^isEnum}}Object{{/isEnum}}{{#isEnum}}Value{{/isEnum}}
 {{classname}}::asJson{{^isEnum}}Object{{/isEnum}}{{#isEnum}}Value{{/isEnum}}() const {
     {{^isEnum}}QJsonObject obj;{{#vars}}
-	{{^isContainer}}{{#complexType}}if({{name}}.isSet()){{/complexType}}{{^complexType}}if(m_{{name}}_isSet){{/complexType}}{
-        obj.insert(QString("{{baseName}}"), ::{{cppNamespace}}::toJsonValue({{name}}));
+	{{^isContainer}}{{#complexType}}if(m_{{name}}.isSet()){{/complexType}}{{^complexType}}if(m_{{name}}_isSet){{/complexType}}{
+        obj.insert(QString("{{baseName}}"), ::{{cppNamespace}}::toJsonValue(m_{{name}}));
     }{{/isContainer}}{{#isContainer}}
-    if({{name}}.size() > 0){
-        {{^items.isContainer}}obj.insert(QString("{{baseName}}"), ::{{cppNamespace}}::toJsonValue({{name}}));{{/items.isContainer}}{{#items.isContainer}}
-        obj.insert(QString("{{baseName}}"), toJsonValue({{name}}));{{/items.isContainer}}
+    if(m_{{name}}.size() > 0){
+        {{^items.isContainer}}obj.insert(QString("{{baseName}}"), ::{{cppNamespace}}::toJsonValue(m_{{name}}));{{/items.isContainer}}{{#items.isContainer}}
+        obj.insert(QString("{{baseName}}"), toJsonValue(m_{{name}}));{{/items.isContainer}}
     } {{/isContainer}}{{/vars}}
     return obj;{{/isEnum}}{{#isEnum}}
     {{#allowableValues}}{{#enumVars}}{{#-first}}{{^isString}}return QJsonValue(static_cast<int>(m_value));{{/isString}}{{#isString}}return QJsonValue(asJson());{{/isString}}{{/-first}}{{/enumVars}}{{/allowableValues}}{{/isEnum}}
 }
 
-{{^isEnum}}{{#vars}}
-{{{dataType}}}
+{{^isEnum}}{{#vars}}{{#isEnum}}{{^isContainer}}
+{{classname}}::{{{datatypeWithEnum}}}
 {{classname}}::{{getter}}() const {
-    return {{name}};
-}
-void
-{{classname}}::{{setter}}(const {{{dataType}}} &{{name}}) {
-    this->{{name}} = {{name}};
-    this->m_{{name}}_isSet = true;
+    return m_{{name}};
 }
 
-{{/vars}}{{/isEnum}}{{#isEnum}}
+{{^isReadOnly}}void
+{{classname}}::{{setter}}(const {{classname}}::{{{datatypeWithEnum}}} {{name}}) {
+    this->m_{{name}} = {{name}};
+    this->m_{{name}}_isSet = true;
+}{{/isReadOnly}}
+
+bool
+{{classname}}::{{baseName}}_isSet() const {
+    return this->m_{{name}}_isSet;
+}
+{{/isContainer}}{{#isContainer}}
+{{baseType}}<{{classname}}::{{{enumName}}}>
+{{classname}}::{{getter}}() const {
+    return m_{{name}};
+}
+
+{{^isReadOnly}}void
+{{classname}}::{{setter}}(const {{baseType}}<{{classname}}::{{{enumName}}}> {{name}}) {
+    this->m_{{name}} = {{name}};
+    this->m_{{name}}_isSet = true;
+}{{/isReadOnly}}
+{{/isContainer}}{{/isEnum}}{{^isEnum}}
+{{{dataType}}}
+{{classname}}::{{getter}}() const {
+    return m_{{name}};
+}
+{{^isReadOnly}}void
+{{classname}}::{{setter}}(const {{{dataType}}} &{{name}}) {
+    this->m_{{name}} = {{name}};
+    this->m_{{name}}_isSet = true;
+}{{/isReadOnly}}
+
+bool
+{{classname}}::{{baseName}}_isSet() const {
+    return this->m_{{name}}_isSet;
+}
+{{/isEnum}}{{/vars}}{{/isEnum}}{{#isEnum}}
 {{classname}}::e{{classname}} {{classname}}::getValue() const {
     return m_value;
 }
@@ -133,13 +189,18 @@ void
 void {{classname}}::setValue(const {{classname}}::e{{classname}}& value){
     m_value = value;
     m_value_isSet = true;
+    m_value_isValid = m_value != e{{classname}}::INVALID_VALUE_OPENAPI_GENERATED;
+}
+{{classname}}& {{classname}}::operator=({{classname}}::e{{classname}} v) { 
+    setValue(v);
+    return *this;
 }
 {{/isEnum}}
 bool
 {{classname}}::isSet() const {
     {{^isEnum}}bool isObjectUpdated = false;
     do{ {{#vars}}
-        {{#isContainer}}if({{name}}.size() > 0){{/isContainer}}{{^isContainer}}{{#complexType}}if({{name}}.isSet()){{/complexType}}{{^complexType}}if(m_{{name}}_isSet){{/complexType}}{{/isContainer}}{ isObjectUpdated = true; break;}
+        {{#isContainer}}if(m_{{name}}.size() > 0){{/isContainer}}{{^isContainer}}{{#complexType}}if(m_{{name}}.isSet()){{/complexType}}{{^complexType}}if(m_{{name}}_isSet){{/complexType}}{{/isContainer}}{ isObjectUpdated = true; break;}
     {{/vars}}}while(false);
     return isObjectUpdated;{{/isEnum}}{{#isEnum}}
     return m_value_isSet;{{/isEnum}}

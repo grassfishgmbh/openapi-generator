@@ -32,6 +32,10 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Map;
+import java.lang.String;
+
+
+import static org.openapitools.codegen.utils.StringUtils.*;
 
 abstract public class AbstractCppCodegen extends DefaultCodegen implements CodegenConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCppCodegen.class);
@@ -241,7 +245,22 @@ abstract public class AbstractCppCodegen extends DefaultCodegen implements Codeg
      * @return getter name based on naming convention
      */
     public String toBooleanGetter(String name) {
-        return "is" + getterAndSetterCapitalize(name);
+        //return "is" + getterAndSetterCapitalize(name);
+        return toGetter(name);
+    }
+    
+    /**
+     * Output the Getter name, e.g. getSize
+     *
+     * @param name the name of the property
+     * @return getter name based on naming convention
+     */
+    @Override
+    public String toGetter(String name) {
+        if (name == null || name.length() == 0) {
+            return name;
+        }
+        return camelize(toVarName(name), true);
     }
 
     @Override
