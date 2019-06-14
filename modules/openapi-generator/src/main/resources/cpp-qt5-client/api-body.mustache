@@ -10,17 +10,20 @@
 namespace {{this}} {
 {{/cppNamespaceDeclarations}}
 
-{{classname}}::{{classname}}(QObject * parent) : QObject(parent) {}
+{{classname}}::{{classname}}(QObject * parent) : QObject(parent), m_config(new {{prefix}}ClientConfig()) {}
 
 {{classname}}::~{{classname}}() {}
 
-{{classname}}::{{classname}}({{prefix}}ClientConfig const &config, QObject * parent) : QObject(parent), config(config) {}
+{{classname}}::{{classname}}(QSharedPointer<{{prefix}}ClientConfig> config, QObject * parent) : QObject(parent), m_config(config) {}
+
+QSharedPointer<{{prefix}}ClientConfig> {{classname}}::config() const { return m_config; }
+void {{classname}}::setConfig(QSharedPointer<{{prefix}}ClientConfig> config) { m_config = config; }
 
 {{#operations}}
 {{#operation}}
 QSharedPointer<{{prefix}}{{operationIdCamelCase}}Reply> 
 {{classname}}::{{nickname}}({{#allParams}}const {{{dataType}}}& {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {
-    QString fullPath = config.getUrl();
+    QString fullPath = m_config->getUrlString();
     fullPath.append("{{{path}}}");
     {{#pathParams}}
     QString {{paramName}}PathParam("{"); 
@@ -38,7 +41,7 @@ QSharedPointer<{{prefix}}{{operationIdCamelCase}}Reply>
     {{/collectionFormat}}{{#collectionFormat}}
     if ({{{paramName}}}.size() > 0) {
       if (QString("{{collectionFormat}}").indexOf("multi") == 0) {
-        Q_FOREACH({{{baseType}}} t, qAsConst({{paramName}})) {
+        for({{{baseType}}} t : qAsConst({{paramName}})) {
           if (fullPath.indexOf("?") > 0)
             fullPath.append("&");
           else
@@ -53,7 +56,7 @@ QSharedPointer<{{prefix}}{{operationIdCamelCase}}Reply>
           fullPath.append("?");
         fullPath.append("{{baseName}}=");
         qint32 count = 0;
-        Q_FOREACH({{{baseType}}} t, qAsConst({{paramName})}) {
+        for({{{baseType}}} t : qAsConst({{paramName})}) {
           if (count > 0) {
             fullPath.append(" ");
           }
@@ -67,7 +70,7 @@ QSharedPointer<{{prefix}}{{operationIdCamelCase}}Reply>
           fullPath.append("?");
         fullPath.append("{{baseName}}=");
         qint32 count = 0;
-        Q_FOREACH({{{baseType}}} t, qAsConst({{paramName}})) {
+        for({{{baseType}}} t : qAsConst({{paramName}})) {
           if (count > 0) {
             fullPath.append("\t");
           }
@@ -98,13 +101,16 @@ QSharedPointer<{{prefix}}{{operationIdCamelCase}}Reply>
         input.headers.insert("{{baseName}}", {{paramName}});
     }
     {{/headerParams}}
-    {{#authMethods}}// TODO: complete authMethods support
-    {{#isKeyInHeader}}
-    if (config.headerAuth.contains("{{keyParamName}}")) input.headers.insert("{{keyParamName}}", config.headerAuth["{{keyParamName}}"]);
+    {{#authMethods}}{{#isBasicBasic}}
+    input.headers.insert("Authorization", QByteArray("Basic ").append(m_config->getBasicAuthentication()));{{/isBasicBasic}}{{#isBasicBearer}}
+    input.headers.insert("Authorization", QByteArray("Bearer ").append(m_config->getBearerAuthentication()));{{/isBasicBearer}}{{#isKeyInHeader}}
+    auto const authenticationHeaders = m_config->getQueryAuthenticationHeaders();
+    if (authenticationHeaders.contains("{{keyParamName}}")) input.headers.insert("{{keyParamName}}", authenticationHeaders["{{keyParamName}}"]);
     {{/isKeyInHeader}}{{/authMethods}}
     
-    foreach(QString key, config.defaultHeaders.keys()) {
-        input.headers.insert(key, config.defaultHeaders.value(key));
+    auto const queryDefaultHeaders = m_config->getQueryDefaultHeaders();
+    for(QString const &key : queryDefaultHeaders.keys()) {
+        input.headers.insert(key, queryDefaultHeaders.value(key));
     }
 
     worker->execute(input);

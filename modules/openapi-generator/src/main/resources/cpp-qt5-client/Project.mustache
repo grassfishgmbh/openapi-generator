@@ -17,9 +17,10 @@ HEADERS += \
 {{/apiInfo}}
 # Others
     $${PWD}/{{prefix}}Helpers.h \
+    $${PWD}/{{prefix}}ClientConfig.h \
     $${PWD}/{{prefix}}HttpRequest.h \
-    $${PWD}/{{prefix}}Object.h
-    $${PWD}/{{prefix}}Enum.h    
+    $${PWD}/{{prefix}}Object.h \
+    $${PWD}/{{prefix}}Enum.h \
 
 SOURCES += \
 # Models
@@ -38,5 +39,6 @@ SOURCES += \
 {{/apiInfo}}
 # Others
     $${PWD}/{{prefix}}Helpers.cpp \
-    $${PWD}/{{prefix}}HttpRequest.cpp
+    $${PWD}/{{prefix}}ClientConfig.cpp \
+    $${PWD}/{{prefix}}HttpRequest.cpp \
 

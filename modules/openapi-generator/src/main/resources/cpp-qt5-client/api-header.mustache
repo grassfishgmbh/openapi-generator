@@ -4,11 +4,13 @@
 
 #include "{{prefix}}HttpRequest.h"
 #include "{{prefix}}Helpers.h"
+#include "{{prefix}}ClientConfig.h"
 
 {{#imports}}{{{import}}}
 {{/imports}}
 
 #include <QObject>
+#include <QSharedPointer>
 
 {{#cppNamespaceDeclarations}}
 namespace {{this}} {
@@ -21,9 +23,10 @@ class {{classname}}: public QObject {
 
 public:
     {{classname}}(QObject * parent = nullptr);
-    {{classname}}({{prefix}}ClientConfig const &api, QObject * parent = nullptr);
+    {{classname}}(QSharedPointer<{{prefix}}ClientConfig> api, QObject * parent = nullptr);
     ~{{classname}}();
-    {{prefix}}ClientConfig config;
+    QSharedPointer<{{prefix}}ClientConfig> config() const;
+    void setConfig(QSharedPointer<{{prefix}}ClientConfig> config);
 
     {{#operations}}{{#operation}}QSharedPointer<{{prefix}}{{operationIdCamelCase}}Reply> {{nickname}}({{#allParams}}const {{{dataType}}}& {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
     {{/operation}}{{/operations}}
@@ -36,6 +39,8 @@ Q_SIGNALS:
     {{/operation}}{{/operations}}
     {{#operations}}{{#operation}}void {{nickname}}SignalEFull({{prefix}}HttpRequestWorker* worker, QNetworkReply::NetworkError error_type, QString& error_str);
     {{/operation}}{{/operations}}
+private:
+    QSharedPointer<{{prefix}}ClientConfig> m_config;
 };
 
 {{#operations}}{{#operation}}class {{prefix}}{{operationIdCamelCase}}Reply : public {{prefix}}HttpRequestWorker {
