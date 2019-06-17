@@ -109,6 +109,11 @@ QString {{prefix}}HttpRequestWorker::http_attribute_encode(QString attribute_nam
 }
 
 void {{prefix}}HttpRequestWorker::execute({{prefix}}HttpRequestInput &input) {
+    this->input = input;
+    execute();
+}
+
+void {{prefix}}HttpRequestWorker::execute() {
 
     // reset variables
 
@@ -126,6 +131,11 @@ void {{prefix}}HttpRequestWorker::execute({{prefix}}HttpRequestInput &input) {
     }
     if (input.var_layout == NOT_SET) {
         input.var_layout = input.http_method == "GET" || input.http_method == "HEAD" ? ADDRESS : URL_ENCODED;
+    }
+    
+    // get bearer token
+    if (input.hasBasicBearerAuthentication) {
+        input.headers.insert("Authorization", QByteArray("Bearer ").append(clientConfig->getBearerAuthentication()));
     }
 
 
@@ -310,6 +320,16 @@ void {{prefix}}HttpRequestWorker::execute({{prefix}}HttpRequestInput &input) {
 
 void {{prefix}}HttpRequestWorker::on_reply_finished() {
     error_type = reply->error();
+    if ((error_type == QNetworkReply::ContentAccessDenied || error_type == QNetworkReply::AuthenticationRequiredError)
+            && input.hasBasicBearerAuthentication && !retriedTokenAuthRequest) {
+        clientConfig->invalidateBearer();
+        retriedTokenAuthRequest = true;
+        error_type = QNetworkReply::NoError;
+        reply->deleteLater();
+        execute();
+        return;
+    }
+    
     rawResponse = reply->readAll();
     error_str = reply->errorString();
     if(reply->rawHeaderPairs().count() > 0){

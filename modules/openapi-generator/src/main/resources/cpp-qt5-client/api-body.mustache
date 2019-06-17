@@ -80,6 +80,7 @@ QSharedPointer<{{prefix}}{{operationIdCamelCase}}Reply>
     }
     {{/collectionFormat}}{{/queryParams}}
     QSharedPointer<{{prefix}}{{operationIdCamelCase}}Reply> worker(new {{prefix}}{{operationIdCamelCase}}Reply(this, this), &QObject::deleteLater);
+    worker->clientConfig = m_config;
     {{prefix}}HttpRequestInput input(fullPath, "{{httpMethod}}");
     {{#formParams}}
     if ({{paramName}} != nullptr) {
@@ -103,7 +104,7 @@ QSharedPointer<{{prefix}}{{operationIdCamelCase}}Reply>
     {{/headerParams}}
     {{#authMethods}}{{#isBasicBasic}}
     input.headers.insert("Authorization", QByteArray("Basic ").append(m_config->getBasicAuthentication()));{{/isBasicBasic}}{{#isBasicBearer}}
-    input.headers.insert("Authorization", QByteArray("Bearer ").append(m_config->getBearerAuthentication()));{{/isBasicBearer}}{{#isKeyInHeader}}
+    input.hasBasicBearerAuthentication=true;{{/isBasicBearer}}{{#isKeyInHeader}}
     auto const authenticationHeaders = m_config->getQueryAuthenticationHeaders();
     if (authenticationHeaders.contains("{{keyParamName}}")) input.headers.insert("{{keyParamName}}", authenticationHeaders["{{keyParamName}}"]);
     {{/isKeyInHeader}}{{/authMethods}}

@@ -13,6 +13,8 @@
 #include <QMap>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QSharedPointer>
+#include "{{prefix}}ClientConfig.h"
 
 
 
@@ -43,6 +45,7 @@ public:
     QMap<QString, QString> headers;
     QList<{{prefix}}HttpRequestInputFileElement> files;
     QByteArray request_body;
+    bool hasBasicBearerAuthentication=false;
 
     {{prefix}}HttpRequestInput();
     {{prefix}}HttpRequestInput(QString v_url_str, QString v_http_method);
@@ -57,10 +60,13 @@ class {{prefix}}HttpRequestWorker : public QObject {
     Q_OBJECT
 
 public:
+    {{prefix}}HttpRequestInput input;
     QByteArray rawResponse;
     QNetworkReply * reply = nullptr;
     QNetworkReply::NetworkError error_type;
     QString error_str;
+    QSharedPointer<{{prefix}}ClientConfig> clientConfig;
+    bool retriedTokenAuthRequest=false;
 
     explicit {{prefix}}HttpRequestWorker(QObject *parent = nullptr);
     virtual ~{{prefix}}HttpRequestWorker();
@@ -70,6 +76,7 @@ public:
     QMap<QByteArray, QByteArray> getResponseHeaders() const;
     QString http_attribute_encode(QString attribute_name, QString input);
     void execute({{prefix}}HttpRequestInput &input);
+    void execute();
     static QSslConfiguration* sslDefaultConfiguration;
 
     bool isFinished() const {return reply && reply->isFinished();}
