@@ -149,7 +149,7 @@ void {{prefix}}HttpRequestWorker::execute() {
         if (input.vars.count() > 0) {
             bool first = true;
             isFormData = true;
-            Q_FOREACH (QString const &key, input.vars.keys()) {
+            for (QString const &key : input.vars.keys()) {
                 if (!first) {
                     request_content.append("&");
                 }
@@ -176,7 +176,7 @@ void {{prefix}}HttpRequestWorker::execute() {
         QString new_line = "\r\n";
 
         // add variables
-        Q_FOREACH (QString const &key, input.vars.keys()) {
+        for (QString const &key : input.vars.keys()) {
             // add boundary
             request_content.append(boundary_delimiter);
             request_content.append(boundary);
@@ -274,7 +274,7 @@ void {{prefix}}HttpRequestWorker::execute() {
         request.setSslConfiguration(*{{prefix}}HttpRequestWorker::sslDefaultConfiguration);
     }
     request.setRawHeader("User-Agent", "{{#httpUserAgent}}{{.}}{{/httpUserAgent}}{{^httpUserAgent}}OpenAPI-Generator/{{apiVersion}}/cpp-qt5{{/httpUserAgent}}");
-    foreach(QString key, input.headers.keys()) {
+    for(QString const &key : input.headers.keys()) {
         request.setRawHeader(key.toStdString().c_str(), input.headers.value(key).toStdString().c_str());
     }
 

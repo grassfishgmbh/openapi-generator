@@ -21,7 +21,7 @@ void {{classname}}::setConfig(QSharedPointer<{{prefix}}ClientConfig> config) { m
 
 {{#operations}}
 {{#operation}}
-QSharedPointer<{{prefix}}{{operationIdCamelCase}}Reply> 
+QSharedPointer<{{classname}}::{{operationIdCamelCase}}Reply> 
 {{classname}}::{{nickname}}({{#allParams}}const {{{dataType}}}& {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {
     QString fullPath = m_config->getUrlString();
     fullPath.append("{{{path}}}");
@@ -79,7 +79,7 @@ QSharedPointer<{{prefix}}{{operationIdCamelCase}}Reply>
       }
     }
     {{/collectionFormat}}{{/queryParams}}
-    QSharedPointer<{{prefix}}{{operationIdCamelCase}}Reply> worker(new {{prefix}}{{operationIdCamelCase}}Reply(this, this), &QObject::deleteLater);
+    QSharedPointer<{{operationIdCamelCase}}Reply> worker(new {{operationIdCamelCase}}Reply(this, this), &QObject::deleteLater);
     worker->clientConfig = m_config;
     {{prefix}}HttpRequestInput input(fullPath, "{{httpMethod}}");
     {{#formParams}}
@@ -115,14 +115,14 @@ QSharedPointer<{{prefix}}{{operationIdCamelCase}}Reply>
     }
 
     worker->execute(input);
-    connect(worker.data(), &{{prefix}}{{operationIdCamelCase}}Reply::finished, this, [worker]() mutable {
+    connect(worker.data(), &{{operationIdCamelCase}}Reply::finished, this, [worker]() mutable {
         worker.clear(); // keep worker object alive until class-wide response signal can be emitted
     });
     return worker;
 }
 
-{{prefix}}{{operationIdCamelCase}}Reply::{{prefix}}{{operationIdCamelCase}}Reply({{classname}} * api, QObject * parent ) : {{prefix}}HttpRequestWorker(parent), api(api) {}
-void {{prefix}}{{operationIdCamelCase}}Reply::processResult() {
+{{classname}}::{{operationIdCamelCase}}Reply::{{operationIdCamelCase}}Reply({{classname}} * api, QObject * parent ) : {{prefix}}HttpRequestWorker(parent), api(api) {}
+void {{classname}}::{{operationIdCamelCase}}Reply::processResult() {
     switch (httpStatusCode()) { {{#responses}}
     case {{code}}: {{#wildcard}}
     default: {{/wildcard}}{{#dataType}}{{#isListContainer}}
