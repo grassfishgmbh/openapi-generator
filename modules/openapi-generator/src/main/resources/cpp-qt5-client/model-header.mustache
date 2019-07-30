@@ -1,8 +1,6 @@
 {{>licenseInfo}}
 {{#models}}{{#model}}/*
  * {{classname}}.h
- *
- * {{description}}
  */
 
 #ifndef {{classname}}_H
@@ -23,6 +21,9 @@
 namespace {{this}} {
 {{/cppNamespaceDeclarations}}
 
+{{#description}}/*! 
+ * {{description}}
+ */{{/description}}
 class {{classname}}: public {{prefix}}{{^isEnum}}Object{{/isEnum}}{{#isEnum}}Enum{{/isEnum}} {
 public:
     {{classname}}();
@@ -36,7 +37,7 @@ public:
 
     {{^isEnum}}{{#vars}}
     {{#isEnum}}{{#allowableValues}}enum class {{enumName}} {{#enumVars}}{{#-first}}{{^isString}}: int {{/isString}}{{/-first}}{{/enumVars}}{
-        INVALID_VALUE_OPENAPI_GENERATED = 0,
+        UndefinedEnumValue = 0,
     {{#enumVars}}
         {{#enumDescription}}
         /**
@@ -55,7 +56,7 @@ public:
     bool {{baseName}}_isSet() const;
     {{/isEnum}}{{/vars}}{{/isEnum}}{{#isEnum}}{{#allowableValues}}
     enum e{{classname}} {{#enumVars}}{{#-first}}{{^isString}}: int {{/isString}}{{/-first}}{{/enumVars}}{
-        INVALID_VALUE_OPENAPI_GENERATED = 0,
+        UndefinedEnumValue = 0,
     {{#enumVars}}
         {{#enumDescription}}
         /**
@@ -66,7 +67,7 @@ public:
     {{/enumVars}}
     };{{/allowableValues}}
     {{classname}}(e{{classname}} value) : m_value(value), m_value_isSet(true), 
-        m_value_isValid(value!=INVALID_VALUE_OPENAPI_GENERATED) { }
+        m_value_isValid(value!=UndefinedEnumValue) { }
     bool operator==({{classname}} const &a) const { return m_value == a.m_value; }
     bool operator!=({{classname}} const &a) const { return m_value != a.m_value; }
     operator e{{classname}}() { return m_value; }

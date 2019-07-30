@@ -17,11 +17,11 @@ namespace {{this}} {
 bool
 fromJsonValue({{classname}}::{{enumName}} &value, const QJsonValue &jval){
     QString jsonString = jval.toString();
-    value = {{classname}}::{{enumName}}::INVALID_VALUE_OPENAPI_GENERATED;{{#allowableValues}}{{#enumVars}} 
+    value = {{classname}}::{{enumName}}::UndefinedEnumValue;{{#allowableValues}}{{#enumVars}} 
     {{#-first}}if{{/-first}}{{^-first}}else if{{/-first}} (jsonString.compare({{#isString}}"{{value}}"{{/isString}}{{^isString}}QString::number({{value}}){{/isString}}, Qt::CaseInsensitive) == 0) {
         value = {{classname}}::{{enumName}}::{{name}};
     }{{/enumVars}}{{/allowableValues}}
-    return value!={{classname}}::{{enumName}}::INVALID_VALUE_OPENAPI_GENERATED;
+    return value!={{classname}}::{{enumName}}::UndefinedEnumValue;
 }
 QJsonValue
 toJsonValue(const {{classname}}::{{enumName}} value){
@@ -55,7 +55,7 @@ void
     {{/vars}}{{/isEnum}}{{#isEnum}}
     m_value_isSet = false;
     m_value_isValid = false;
-    m_value = e{{classname}}::INVALID_VALUE_OPENAPI_GENERATED;
+    m_value = e{{classname}}::UndefinedEnumValue;
     {{/isEnum}}
 }
 
@@ -189,7 +189,7 @@ bool
 void {{classname}}::setValue(const {{classname}}::e{{classname}}& value){
     m_value = value;
     m_value_isSet = true;
-    m_value_isValid = m_value != e{{classname}}::INVALID_VALUE_OPENAPI_GENERATED;
+    m_value_isValid = m_value != e{{classname}}::UndefinedEnumValue;
 }
 {{classname}}& {{classname}}::operator=({{classname}}::e{{classname}} v) { 
     setValue(v);

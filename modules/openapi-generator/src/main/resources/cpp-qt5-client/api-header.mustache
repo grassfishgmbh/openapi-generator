@@ -28,7 +28,8 @@ public:
 
     {{#operations}}{{#operation}}class {{operationIdCamelCase}}Reply;
     {{/operation}}{{/operations}}
-    {{#operations}}{{#operation}}QSharedPointer<{{operationIdCamelCase}}Reply> {{nickname}}({{#allParams}}const {{{dataType}}}& {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+    {{#operations}}{{#operation}}{{#summary}}/*! \brief {{summary}} */
+    {{/summary}}QSharedPointer<{{operationIdCamelCase}}Reply> {{nickname}}({{#allParams}}const {{{dataType}}}& {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
     {{/operation}}{{/operations}}
 Q_SIGNALS:
     {{#operations}}{{#operation}}void {{nickname}}Signal({{#returnType}}{{{returnType}}} summary{{/returnType}});
@@ -48,7 +49,8 @@ private:
     Q_OBJECT
 public:
     {{operationIdCamelCase}}Reply({{classname}} * api, QObject * parent = nullptr);
-    virtual void processResult() override;{{#responses}}{{#dataType}}
+    virtual void processResult() override;{{#responses}}{{#dataType}}{{#message}}
+    /*! {{message}} */ {{/message}}
     {{{dataType}}} {{#isDefault}}result{{/isDefault}}{{^isDefault}}result_{{code}}{{/isDefault}};{{/dataType}}{{/responses}}
     {{classname}} * api;
 };

@@ -188,6 +188,28 @@ abstract public class AbstractCppCodegen extends DefaultCodegen implements Codeg
 
         return sanitizeName(name);
     }
+    
+    /**
+     * Return the sanitized variable name for enum
+     *
+     * @param value    enum variable name
+     * @param datatype data type
+     * @return the sanitized variable name for enum
+     */
+    @Override
+    public String toEnumVarName(String value, String datatype) {
+        if (value.length() == 0) {
+            return "EMPTY";
+        }
+
+        String var = value.replaceAll("\\W+", "_");
+        var = camelize(var);
+        if (var.matches("\\d.*")) {
+            return "_" + var;
+        } else {
+            return var;
+        }
+    }
 
     /**
      * Escapes a reserved word as defined in the `reservedWords` array. Handle
