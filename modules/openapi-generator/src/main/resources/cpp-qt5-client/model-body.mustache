@@ -151,9 +151,11 @@ QJson{{^isEnum}}Object{{/isEnum}}{{#isEnum}}Value{{/isEnum}}
     this->m_{{name}}_isSet = true;
 }{{/isReadOnly}}
 
-bool
-{{classname}}::{{baseName}}_isSet() const {
+bool {{classname}}::{{baseName}}_isSet() const {
     return this->m_{{name}}_isSet;
+}
+bool {{classname}}::{{baseName}}_isValid() const {
+    return this->m_{{name}}_isSet && this->m_{{name}}_isValid;
 }
 {{/isContainer}}{{#isContainer}}
 {{baseType}}<{{classname}}::{{{enumName}}}>
@@ -177,9 +179,11 @@ bool
     this->m_{{name}}_isSet = true;
 }{{/isReadOnly}}
 
-bool
-{{classname}}::{{baseName}}_isSet() const {
+bool {{classname}}::{{baseName}}_isSet() const {
     return this->m_{{name}}_isSet;
+}
+bool {{classname}}::{{baseName}}_isValid() const {
+    return this->m_{{name}}_isSet && this->m_{{name}}_isValid;
 }
 {{/isEnum}}{{/vars}}{{/isEnum}}{{#isEnum}}
 {{classname}}::e{{classname}} {{classname}}::getValue() const {

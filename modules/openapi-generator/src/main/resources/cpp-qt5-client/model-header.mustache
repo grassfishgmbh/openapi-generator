@@ -51,9 +51,11 @@ public:
     {{{datatypeWithEnum}}} {{getter}}() const;{{^isReadOnly}}
     void {{setter}}(const {{{datatypeWithEnum}}} value);{{/isReadOnly}}
     bool {{baseName}}_isSet() const;
+    bool {{baseName}}_isValid() const;
     {{/isEnum}}{{^isEnum}}{{{dataType}}} {{getter}}() const;{{^isReadOnly}}
     void {{setter}}(const {{{dataType}}} &{{name}});{{/isReadOnly}}
     bool {{baseName}}_isSet() const;
+    bool {{baseName}}_isValid() const;
     {{/isEnum}}{{/vars}}{{/isEnum}}{{#isEnum}}{{#allowableValues}}
     enum e{{classname}} {{#enumVars}}{{#-first}}{{^isString}}: int {{/isString}}{{/-first}}{{/enumVars}}{
         UndefinedEnumValue = 0,
