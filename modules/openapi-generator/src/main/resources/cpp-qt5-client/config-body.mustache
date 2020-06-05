@@ -1,0 +1,96 @@
+{{>licenseInfo}}
+#include <QDebug>
+#include "{{prefix}}ClientConfig.h"
+
+
+{{#cppNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppNamespaceDeclarations}}
+
+{{prefix}}ClientConfig::{{prefix}}ClientConfig(QString baseUrl)
+{
+    if (baseUrl.isEmpty()) {
+        m_baseUrl.setScheme("{{#scheme}}{{scheme}}{{/scheme}}{{^scheme}}http{{/scheme}}");
+        m_baseUrl.setAuthority("{{#host}}{{host}}{{/host}}{{^host}}localhost{{/host}}");{{#contextPath}}
+        m_baseUrl.setPath("{{contextPath}}");{{/contextPath}}
+    } else {
+        m_baseUrl = QUrl(baseUrl);
+    }
+}
+
+{{prefix}}ClientConfig::~{{prefix}}ClientConfig() {}
+
+
+QUrl {{prefix}}ClientConfig::baseUrl() const {
+    return m_baseUrl;
+}
+
+void {{prefix}}ClientConfig::setBaseUrl(QUrl const &baseUrl) {
+    m_baseUrl = baseUrl;
+}
+
+void {{prefix}}ClientConfig::setAuthority(QString const &authority) {
+    m_baseUrl.setAuthority(authority);
+}
+
+void {{prefix}}ClientConfig::setScheme(QString const &scheme) {
+    m_baseUrl.setScheme(scheme);
+}
+
+bool {{prefix}}ClientConfig::ignoreSslErrors() const {
+    return m_ignoreSslErrors;
+}
+
+void {{prefix}}ClientConfig::setIgnoreSslErrors(bool ignore) {
+    m_ignoreSslErrors = ignore;
+}
+
+QMap<QString, QString> {{prefix}}ClientConfig::defaultHeaders() const
+{
+    return m_defaultHeaders;
+}
+
+void {{prefix}}ClientConfig::setDefaultHeaders(const QMap<QString, QString> &defaultHeaders)
+{
+    m_defaultHeaders = defaultHeaders;
+}
+
+QMap<QString, QString> {{prefix}}ClientConfig::authenticationHeaders() const
+{
+    return m_headerAuth;
+}
+
+void {{prefix}}ClientConfig::setAuthenticationHeaders(const QMap<QString, QString> &authenticationHeaders)
+{
+    m_headerAuth = authenticationHeaders;
+}
+
+QString {{prefix}}ClientConfig::getUrlString() const {
+    return baseUrl().toString();
+}
+
+QMap<QString, QString> {{prefix}}ClientConfig::getQueryDefaultHeaders()
+{
+    return defaultHeaders();
+}
+
+QMap<QString, QString> {{prefix}}ClientConfig::getQueryAuthenticationHeaders()
+{
+    return authenticationHeaders();
+}
+
+QByteArray {{prefix}}ClientConfig::getBasicAuthentication()
+{
+    return QByteArray();
+}
+
+QByteArray {{prefix}}ClientConfig::getBearerAuthentication()
+{
+    return QByteArray();
+}
+
+void {{prefix}}ClientConfig::invalidateBearer() {}
+
+{{#cppNamespaceDeclarations}}
+}
+{{/cppNamespaceDeclarations}}

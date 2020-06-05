@@ -315,6 +315,9 @@ void {{prefix}}HttpRequestWorker::execute() {
         buffer->setParent(reply);
 #endif
     }
+    if (clientConfig->ignoreSslErrors()) {
+        reply->ignoreSslErrors();
+    }
     connect(reply, &QNetworkReply::finished, this, &{{prefix}}HttpRequestWorker::on_reply_finished);
 }
 

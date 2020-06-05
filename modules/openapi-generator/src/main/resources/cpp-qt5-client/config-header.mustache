@@ -1,0 +1,54 @@
+{{>licenseInfo}}
+#ifndef {{prefix}}_CLIENTCONFIG_H
+#define {{prefix}}_CLIENTCONFIG_H
+
+#include <QUrl>
+#include <QMap>
+#include <QString>
+
+{{#cppNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppNamespaceDeclarations}}
+class {{prefix}}ClientConfig
+{
+public:
+    {{prefix}}ClientConfig(QString baseUrl=QString());
+    virtual ~{{prefix}}ClientConfig();
+    
+    QUrl baseUrl() const;
+    void setBaseUrl(QUrl const &url);
+    
+    void setAuthority(QString const &authority);
+    void setScheme(QString const &scheme);
+    
+    bool ignoreSslErrors() const;
+    void setIgnoreSslErrors(bool ignore);
+    
+    QMap<QString, QString> defaultHeaders() const;
+    void setDefaultHeaders(QMap<QString, QString> const &defaultHeaders);
+    
+    QMap<QString, QString> authenticationHeaders() const;
+    void setAuthenticationHeaders(QMap<QString, QString> const &authenticationHeaders);
+    
+    virtual QString getUrlString() const;
+    virtual QMap<QString, QString> getQueryDefaultHeaders();
+    virtual QMap<QString, QString> getQueryAuthenticationHeaders();
+    virtual QByteArray getBasicAuthentication();
+    virtual QByteArray getBearerAuthentication();
+    virtual void invalidateBearer();
+    
+    
+protected:
+    QUrl m_baseUrl;
+    QMap<QString, QString> m_headerAuth;
+    QMap<QString, QString> m_defaultHeaders;
+    bool m_ignoreSslErrors=false;
+    
+};
+ 
+
+{{#cppNamespaceDeclarations}}
+}
+{{/cppNamespaceDeclarations}}
+
+#endif // {{prefix}}_CLIENTCONFIG_H
