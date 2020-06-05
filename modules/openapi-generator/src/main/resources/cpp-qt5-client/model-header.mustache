@@ -72,6 +72,8 @@ public:
         m_value_isValid(value!=UndefinedEnumValue) { }
     bool operator==({{classname}} const &a) const { return m_value == a.m_value; }
     bool operator!=({{classname}} const &a) const { return m_value != a.m_value; }
+    bool operator==({{classname}}::e{{classname}} const &a) const { return m_value == a; }
+    bool operator!=({{classname}}::e{{classname}} const &a) const { return m_value != a; }
     operator e{{classname}}() { return m_value; }
     {{classname}}& operator=(e{{classname}} v);
 
@@ -82,17 +84,16 @@ public:
     virtual bool isValid() const override;
 
 private:
-    void init();
-    {{^isEnum}}{{#vars}}
-    {{#isEnum}}{{{datatypeWithEnum}}} m_{{name}};
-    {{/isEnum}}{{^isEnum}}{{{dataType}}} m_{{name}};
-    {{/isEnum}}bool m_{{name}}_isSet;
-    bool m_{{name}}_isValid;
-    {{/vars}}{{/isEnum}}
-    {{#isEnum}}e{{classname}} m_value;
-    bool m_value_isSet;
-    bool m_value_isValid;
-    {{/isEnum}}
+    {{^isEnum}}bool m_isSet=false;
+    
+    {{#vars}}{{#isEnum}}{{{datatypeWithEnum}}} m_{{name}}={{{datatypeWithEnum}}}::UndefinedEnumValue;
+    {{/isEnum}}{{^isEnum}}{{{dataType}}} m_{{name}}={{{defaultValue}}};
+    {{/isEnum}}bool m_{{name}}_isSet=false;
+    bool m_{{name}}_isValid=false;
+    
+    {{/vars}}{{/isEnum}}{{#isEnum}}e{{classname}} m_value=e{{classname}}::UndefinedEnumValue;
+    bool m_value_isSet=false;
+    bool m_value_isValid=false;{{/isEnum}}
 };
 
 {{#cppNamespaceDeclarations}}

@@ -175,9 +175,9 @@ public class CppQt5AbstractCodegen extends AbstractCppCodegen implements Codegen
         if (ModelUtils.isBooleanSchema(p)) {
             return "false";
         } else if (ModelUtils.isDateSchema(p)) {
-            return "NULL";
+            return "QDate()";
         } else if (ModelUtils.isDateTimeSchema(p)) {
-            return "NULL";
+            return "QDateTime()";
         } else if (ModelUtils.isNumberSchema(p)) {
             if (SchemaTypeUtil.FLOAT_FORMAT.equals(p.getFormat())) {
                 return "0.0f";
@@ -188,19 +188,10 @@ public class CppQt5AbstractCodegen extends AbstractCppCodegen implements Codegen
                 return "0L";
             }
             return "0";
-        } else if (ModelUtils.isMapSchema(p)) {
-            Schema inner = ModelUtils.getAdditionalProperties(p);
-            return "QMap<QString, " + getTypeDeclaration(inner) + ">()";
-        } else if (ModelUtils.isArraySchema(p)) {
-            ArraySchema ap = (ArraySchema) p;
-            Schema inner = ap.getItems();
-            return "QList<" + getTypeDeclaration(inner) + ">()";
-        } else if (ModelUtils.isStringSchema(p)) {
-            return "QString(\"\")";
         } else if (!StringUtils.isEmpty(p.get$ref())) {
             return toModelName(ModelUtils.getSimpleRef(p.get$ref())) + "()";
         }
-        return "NULL";
+        return getTypeDeclaration(p)+"()";
     }
 
     @Override

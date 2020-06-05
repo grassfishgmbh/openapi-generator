@@ -14,8 +14,7 @@ namespace {{this}} {
 {{/cppNamespaceDeclarations}}
 
 {{^isEnum}}{{#vars}}{{#isEnum}}
-bool
-fromJsonValue({{classname}}::{{enumName}} &value, const QJsonValue &jval){
+bool fromJsonValue({{classname}}::{{enumName}} &value, const QJsonValue &jval){
     QString jsonString = jval.toString();
     value = {{classname}}::{{enumName}}::UndefinedEnumValue;{{#allowableValues}}{{#enumVars}} 
     {{#-first}}if{{/-first}}{{^-first}}else if{{/-first}} (jsonString.compare({{#isString}}"{{value}}"{{/isString}}{{^isString}}QString::number({{value}}){{/isString}}, Qt::CaseInsensitive) == 0) {
@@ -23,8 +22,7 @@ fromJsonValue({{classname}}::{{enumName}} &value, const QJsonValue &jval){
     }{{/enumVars}}{{/allowableValues}}
     return value!={{classname}}::{{enumName}}::UndefinedEnumValue;
 }
-QJsonValue
-toJsonValue(const {{classname}}::{{enumName}} value){
+QJsonValue toJsonValue(const {{classname}}::{{enumName}} value){
     switch (value) { {{#allowableValues}}{{#enumVars}} 
     case {{classname}}::{{enumName}}::{{name}}:
         return QJsonValue({{#isString}}"{{value}}"{{/isString}}{{^isString}}{{value}}{{/isString}});{{/enumVars}}{{/allowableValues}}
@@ -35,35 +33,18 @@ toJsonValue(const {{classname}}::{{enumName}} value){
 {{/isEnum}}{{/vars}}{{/isEnum}}
 
 {{classname}}::{{classname}}(QString json) {
-    this->init();
     this->fromJson(json);
 }
 
-{{classname}}::{{classname}}() {
-    this->init();
-}
+{{classname}}::{{classname}}() {}
+{{classname}}::~{{classname}}() {}
 
-{{classname}}::~{{classname}}() {
-
-}
-
-void
-{{classname}}::init() {
-    {{^isEnum}}{{#vars}}
-    m_{{name}}_isSet = false;
-    m_{{name}}_isValid = false;
-    {{/vars}}{{/isEnum}}{{#isEnum}}
-    m_value_isSet = false;
-    m_value_isValid = false;
-    m_value = e{{classname}}::UndefinedEnumValue;
-    {{/isEnum}}
-}
-
-void
-{{classname}}::fromJson(QString jsonString) {
+void {{classname}}::fromJson(QString jsonString) {
     {{^isEnum}}QJsonDocument doc = QJsonDocument::fromJson(jsonString.toUtf8());
-    QJsonObject jsonObject = doc.object();
-    this->fromJsonObject(jsonObject);{{/isEnum}}{{#isEnum}}{{#allowableValues}}{{#enumVars}} 
+    if (doc.isObject()) {
+        QJsonObject jsonObject = doc.object();
+        this->fromJsonObject(jsonObject);
+    }{{/isEnum}}{{#isEnum}}{{#allowableValues}}{{#enumVars}} 
     {{#-first}}if{{/-first}}{{^-first}}else if{{/-first}} ( jsonString.compare({{#isString}}"{{value}}"{{/isString}}{{^isString}}QString::number({{value}}){{/isString}}, Qt::CaseInsensitive) == 0) {
         m_value = e{{classname}}::{{name}};
         m_value_isValid = true;
@@ -71,12 +52,13 @@ void
     }{{/enumVars}}{{/allowableValues}}{{/isEnum}}
 }
 
-void
-{{classname}}::fromJson{{^isEnum}}Object{{/isEnum}}{{#isEnum}}Value{{/isEnum}}(QJson{{^isEnum}}Object{{/isEnum}}{{#isEnum}}Value{{/isEnum}} json) {
-    {{^isEnum}}{{#vars}}
-    {{^isContainer}}m_{{name}}_isSet = json.contains("{{baseName}}");
-    m_{{name}}_isValid = ::{{cppNamespace}}::fromJsonValue(m_{{name}}, json["{{baseName}}"]);{{/isContainer}}
-    {{#isContainer}}{{^items.isContainer}}m_{{name}}_isSet = json.contains("{{baseName}}");
+void {{classname}}::fromJson{{^isEnum}}Object{{/isEnum}}{{#isEnum}}Value{{/isEnum}}(QJson{{^isEnum}}Object{{/isEnum}}{{#isEnum}}Value{{/isEnum}} json) {
+    {{^isEnum}}
+    m_isSet=true;
+    
+    {{#vars}}{{^isContainer}}m_{{name}}_isSet = json.contains("{{baseName}}");
+    m_{{name}}_isValid = ::{{cppNamespace}}::fromJsonValue(m_{{name}}, json["{{baseName}}"]);
+    {{/isContainer}}{{#isContainer}}{{^items.isContainer}}m_{{name}}_isSet = json.contains("{{baseName}}");
     m_{{name}}_isValid = ::{{cppNamespace}}::fromJsonValue(m_{{name}}, json["{{baseName}}"]);{{/items.isContainer}}{{#items.isContainer}}{{#isListContainer}}
     if(json["{{baseName}}"].isArray()){
         auto arr = json["{{baseName}}"].toArray();
@@ -105,12 +87,10 @@ void
     {{#allowableValues}}{{#enumVars}}{{#-first}}{{#isString}}fromJson(json.toString());{{/isString}}{{^isString}}m_value = static_cast<e{{classname}}>(json.toInt());{{/isString}}{{/-first}}{{/enumVars}}{{/allowableValues}}{{/isEnum}}
 }
 
-QString
-{{classname}}::asJson () const {
-    {{^isEnum}}QJsonObject obj = this->asJsonObject();
+QString {{classname}}::asJson () const {
+    {{^isEnum}}QJsonObject const obj = this->asJsonObject();
     QJsonDocument doc(obj);
-    QByteArray bytes = doc.toJson();
-    return QString(bytes);{{/isEnum}}{{#isEnum}}
+    return doc.toJson();{{/isEnum}}{{#isEnum}}
     QString val;
     {{#allowableValues}}
     switch (m_value){
@@ -125,8 +105,7 @@ QString
     return val;{{/isEnum}}
 }
 
-QJson{{^isEnum}}Object{{/isEnum}}{{#isEnum}}Value{{/isEnum}}
-{{classname}}::asJson{{^isEnum}}Object{{/isEnum}}{{#isEnum}}Value{{/isEnum}}() const {
+QJson{{^isEnum}}Object{{/isEnum}}{{#isEnum}}Value{{/isEnum}} {{classname}}::asJson{{^isEnum}}Object{{/isEnum}}{{#isEnum}}Value{{/isEnum}}() const {
     {{^isEnum}}QJsonObject obj;{{#vars}}
 	{{^isContainer}}{{#complexType}}if(m_{{name}}.isSet()){{/complexType}}{{^complexType}}if(m_{{name}}_isSet){{/complexType}}{
         obj.insert(QString("{{baseName}}"), ::{{cppNamespace}}::toJsonValue(m_{{name}}));
@@ -140,15 +119,14 @@ QJson{{^isEnum}}Object{{/isEnum}}{{#isEnum}}Value{{/isEnum}}
 }
 
 {{^isEnum}}{{#vars}}{{#isEnum}}{{^isContainer}}
-{{classname}}::{{{datatypeWithEnum}}}
-{{classname}}::{{getter}}() const {
+{{classname}}::{{{datatypeWithEnum}}} {{classname}}::{{getter}}() const {
     return m_{{name}};
 }
 
-{{^isReadOnly}}void
-{{classname}}::{{setter}}(const {{classname}}::{{{datatypeWithEnum}}} {{name}}) {
+{{^isReadOnly}}void {{classname}}::{{setter}}(const {{classname}}::{{{datatypeWithEnum}}} {{name}}) {
     this->m_{{name}} = {{name}};
     this->m_{{name}}_isSet = true;
+    this->m_isSet = true;
 }{{/isReadOnly}}
 
 bool {{classname}}::{{baseName}}_isSet() const {
@@ -158,25 +136,23 @@ bool {{classname}}::{{baseName}}_isValid() const {
     return this->m_{{name}}_isSet && this->m_{{name}}_isValid;
 }
 {{/isContainer}}{{#isContainer}}
-{{baseType}}<{{classname}}::{{{enumName}}}>
-{{classname}}::{{getter}}() const {
+{{baseType}}<{{classname}}::{{{enumName}}}> {{classname}}::{{getter}}() const {
     return m_{{name}};
 }
 
-{{^isReadOnly}}void
-{{classname}}::{{setter}}(const {{baseType}}<{{classname}}::{{{enumName}}}> {{name}}) {
+{{^isReadOnly}}void {{classname}}::{{setter}}(const {{baseType}}<{{classname}}::{{{enumName}}}> {{name}}) {
     this->m_{{name}} = {{name}};
     this->m_{{name}}_isSet = true;
+    this->m_isSet = true;
 }{{/isReadOnly}}
 {{/isContainer}}{{/isEnum}}{{^isEnum}}
-{{{dataType}}}
-{{classname}}::{{getter}}() const {
+{{{dataType}}} {{classname}}::{{getter}}() const {
     return m_{{name}};
 }
-{{^isReadOnly}}void
-{{classname}}::{{setter}}(const {{{dataType}}} &{{name}}) {
+{{^isReadOnly}}void {{classname}}::{{setter}}(const {{{dataType}}} &{{name}}) {
     this->m_{{name}} = {{name}};
     this->m_{{name}}_isSet = true;
+    this->m_isSet = true;
 }{{/isReadOnly}}
 
 bool {{classname}}::{{baseName}}_isSet() const {
@@ -200,19 +176,15 @@ void {{classname}}::setValue(const {{classname}}::e{{classname}}& value){
     return *this;
 }
 {{/isEnum}}
-bool
-{{classname}}::isSet() const {
-    {{^isEnum}}bool isObjectUpdated = false;
-    do{ {{#vars}}
-        {{#isContainer}}if(m_{{name}}.size() > 0){{/isContainer}}{{^isContainer}}{{#complexType}}if(m_{{name}}.isSet()){{/complexType}}{{^complexType}}if(m_{{name}}_isSet){{/complexType}}{{/isContainer}}{ isObjectUpdated = true; break;}
-    {{/vars}}}while(false);
-    return isObjectUpdated;{{/isEnum}}{{#isEnum}}
+bool {{classname}}::isSet() const {
+    {{^isEnum}}return m_isSet;{{/isEnum}}{{#isEnum}}
     return m_value_isSet;{{/isEnum}}
 }
 
-bool
-{{classname}}::isValid() const {
-    // only required properties are required for the object to be considered valid
+bool {{classname}}::isValid() const {
+    if (!isSet()) return false;
+    
+    // required properties are required for the object to be considered valid
     return {{^isEnum}}{{#vars}}{{#required}}m_{{name}}_isValid && {{/required}}{{/vars}}true{{/isEnum}}{{#isEnum}}m_value_isValid{{/isEnum}};
 }
 
